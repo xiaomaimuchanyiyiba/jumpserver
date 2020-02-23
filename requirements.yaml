@@ -1,0 +1,11 @@
+dependencies:
+
+  - name: mariadb
+    version: 7.3.*
+    repository: http://mirror.azure.cn/kubernetes/charts
+    condition: mariadb.enabled
+
+  - name: redis
+    version: 10.5.*
+    repository: http://mirror.azure.cn/kubernetes/charts
+    condition: redis.enabled

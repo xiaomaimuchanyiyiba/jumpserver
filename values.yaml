@@ -1,0 +1,1555 @@
+# Default values for jumpserver.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+  imagePullSecrets: []
+  # - name: yourImagePullSecret
+
+ingress:
+  enabled: true
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - "mychart.jumpserver.com"
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+jmsCore:
+  enabled: true
+
+  labels:
+    app.jumpserver.org/name: jms-core
+
+  config:
+    # Generate a new random secret key by execute `cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 50`
+    secretKey: ""
+    # Generate a new random bootstrap token by execute `cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 16`
+    bootstrapToken: ""
+    # Enabled it for debug
+    debug: false
+    log:
+      level: INFO
+      dir: /opt/jumpserver/logs
+    # Fill it with your mysql config
+    db:
+      engine: mysql
+      host: ""
+      port: 3306
+      user: jumpserver
+      password: ""
+      name: jumpserver
+    # Fill it with your redis config
+    redis:
+      host: ""
+      port: 6379
+      password: ""
+
+  replicaCount: 1
+
+  image:
+    repository: docker.io/wojiushixiaobai/jms_core
+    tag: 1.5.6
+    pullPolicy: IfNotPresent
+
+  command: []
+
+  env: []
+
+  livenessProbe:
+    failureThreshold: 30
+    httpGet:
+      path: /api/health
+      port: web
+
+  readinessProbe:
+    failureThreshold: 30
+    httpGet:
+      path: /api/health
+      port: web
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  service:
+    type: ClusterIP
+    web:
+      port: 8080
+    ws:
+      port: 8070
+
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 1000m
+    #   memory: 2048Mi
+    # requests:
+    #   cpu: 500m
+    #   memory: 1024Mi
+
+  persistence:
+    type: pvc
+    enabled: false
+    # storageClassName: default
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+    # annotations: {}
+    finalizers:
+      - kubernetes.io/pvc-protection
+    # subPath: ""
+    # existingClaim:
+
+  volumeMounts: []
+
+  volumes: []
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+jmsGuacamole:
+  enabled: true
+
+  labels:
+    app.jumpserver.org/name: jms-guacamole
+
+  replicaCount: 1
+
+  image:
+    repository: docker.io/wojiushixiaobai/jms_guacamole
+    tag: 1.5.6
+    pullPolicy: IfNotPresent
+
+  command: []
+
+  env: []
+
+  livenessProbe:
+    failureThreshold: 30
+    tcpSocket:
+      port: web
+
+  readinessProbe:
+    failureThreshold: 30
+    tcpSocket:
+      port: web
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  service:
+    type: ClusterIP
+    web:
+      port: 8080
+
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 512Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 512Mi
+
+  volumeMounts: []
+
+  volumes: []
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+jmsKoko:
+  enabled: true
+
+  labels:
+    app.jumpserver.org/name: jms-koko
+
+  config:
+    log:
+      level: INFO
+    lang: zh
+    sftp:
+      root: /tmp
+      showHiddenFile: true
+    reuseConnection: true
+
+  replicaCount: 1
+
+  image:
+    repository: docker.io/wojiushixiaobai/jms_koko
+    tag: 1.5.6
+    pullPolicy: IfNotPresent
+
+  command: []
+
+  env: []
+
+  livenessProbe:
+    failureThreshold: 30
+    tcpSocket:
+      port: web
+
+  readinessProbe:
+    failureThreshold: 30
+    tcpSocket:
+      port: web
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  # Using LoadBalancer type to be accessable from external,
+  # if your are not using cloud provider, try to use Metallb
+  # https://metallb.universe.tf/, it will provide a loadbalancer
+  # deployed on your metal host
+  service:
+    type: LoadBalancer
+    loadBalancerIP: "yourLoadBalancerIP"
+    annotations: {}
+      # service.beta.kubernetes.io/alicloud-loadbalancer-address-type: intranet
+      # service.beta.kubernetes.io/alicloud-loadbalancer-force-override-listeners: 'true'
+      # service.beta.kubernetes.io/alicloud-loadbalancer-id: ''
+    web:
+      port: 5000
+    ssh:
+      port: 2222
+
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  volumeMounts: []
+
+  volumes: []
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+jmsLuna:
+  enabled: true
+
+  labels:
+    app.jumpserver.org/name: jms-luna
+
+  replicaCount: 1
+
+  image:
+    repository: docker.io/wojiushixiaobai/jms_nginx
+    tag: 1.5.6
+    pullPolicy: IfNotPresent
+
+  command:
+  - /bin/sh
+  - -c
+  - |
+    ln -sf /dev/stdout /var/log/nginx/access.log;
+    ln -sf /dev/stderr /var/log/nginx/error.log;
+    nginx -g 'daemon off;'
+
+  env: []
+
+  livenessProbe:
+    tcpSocket:
+      port: web
+
+  readinessProbe:
+    tcpSocket:
+      port: web
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  service:
+    type: ClusterIP
+    web:
+      port: 80
+
+  resources: {}
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  volumeMounts: []
+
+  volumes: []
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+# Do not enabled on your production cluster
+mariadb:
+  enabled: false
+  ## Global Docker image parameters
+  ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+  ## Current available global Docker image parameters: imageRegistry and imagePullSecrets
+  ##
+  # global:
+  #   imageRegistry: myRegistryName
+  #   imagePullSecrets:
+  #     - myRegistryKeySecretName
+  #   storageClass: myStorageClass
+
+  ## Use an alternate scheduler, e.g. "stork".
+  ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+  ##
+  # schedulerName:
+
+  ## Bitnami MariaDB image
+  ## ref: https://hub.docker.com/r/bitnami/mariadb/tags/
+  ##
+  image:
+    registry: docker.io
+    repository: bitnami/mariadb
+    tag: 10.3.22-debian-10-r0
+    ## Specify a imagePullPolicy
+    ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+    ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+    ##
+    pullPolicy: IfNotPresent
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistryKeySecretName
+
+    ## Set to true if you would like to see extra information on logs
+    ## It turns BASH and NAMI debugging in minideb
+    ## ref:  https://github.com/bitnami/minideb-extras/#turn-on-bash-debugging
+    debug: false
+
+  ## String to partially override mariadb.fullname template (will maintain the release name)
+  ##
+  # nameOverride:
+
+  ## String to fully override mariadb.fullname template
+  ##
+  # fullnameOverride:
+
+  ## Init containers parameters:
+  ## volumePermissions: Change the owner and group of the persistent volume mountpoint to runAsUser:fsGroup values from the securityContext section.
+  ##
+  volumePermissions:
+    enabled: false
+    image:
+      registry: docker.io
+      repository: bitnami/minideb
+      tag: buster
+      pullPolicy: Always
+      ## Optionally specify an array of imagePullSecrets.
+      ## Secrets must be manually created in the namespace.
+      ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+      ##
+      # pullSecrets:
+      #   - myRegistryKeySecretName
+    resources: {}
+
+  service:
+    ## Kubernetes service type, ClusterIP and NodePort are supported at present
+    type: ClusterIP
+    # clusterIp:
+    #   master: xx.xx.xx.xx
+    #   slave: xx.xx.xx.xx
+    port: 3306
+    ## Specify the nodePort value for the LoadBalancer and NodePort service types.
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+    ##
+    # nodePort:
+    #   master: 30001
+    #   slave: 30002
+
+  ## Pods Service Account
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+  serviceAccount:
+    ## Specifies whether a ServiceAccount should be created
+    ##
+    create: false
+    ## The name of the ServiceAccount to use.
+    ## If not set and create is true, a name is generated using the mariadb.fullname template
+    # name:
+
+  ## Role Based Access
+  ## Ref: https://kubernetes.io/docs/admin/authorization/rbac/
+  ##
+  rbac:
+    create: false
+
+  ## Pod Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+  ##
+  securityContext:
+    enabled: true
+    fsGroup: 1001
+    runAsUser: 1001
+
+  ## Use existing secret (ignores root, db and replication passwords)
+  ##
+  # existingSecret:
+
+  ## MariaDB admin credentials
+  ##
+  rootUser:
+    ## MariaDB admin password
+    ## ref: https://github.com/bitnami/bitnami-docker-mariadb#setting-the-root-password-on-first-run
+    ##
+    password: "admin"
+    ## Option to force users to specify a password. That is required for 'helm upgrade' to work properly.
+    ## If it is not force, a random password will be generated.
+    ##
+    forcePassword: false
+    ## Mount admin password as a file instead of using an environment variable
+    ##
+    injectSecretsAsVolume: false
+
+  ## Custom user/db credentials
+  ##
+  db:
+    ## MariaDB username and password
+    ## ref: https://github.com/bitnami/bitnami-docker-mariadb#creating-a-database-user-on-first-run
+    ##
+    user: "jumpserver"
+    password: "jumpserver"
+    ## Database to create
+    ## ref: https://github.com/bitnami/bitnami-docker-mariadb#creating-a-database-on-first-run
+    ##
+    name: jumpserver
+    ## Option to force users to specify a password. That is required for 'helm upgrade' to work properly.
+    ## If it is not force, a random password will be generated.
+    ##
+    forcePassword: false
+    ## Mount user password as a file instead of using an environment variable
+    ##
+    injectSecretsAsVolume: false
+
+  ## Replication configuration
+  ##
+  replication:
+    ## Enable replication. This enables the creation of replicas of MariaDB. If false, only a
+    ## master deployment would be created
+    ##
+    enabled: false
+    ## MariaDB replication user
+    ## ref: https://github.com/bitnami/bitnami-docker-mariadb#setting-up-a-replication-cluster
+    ##
+    user: replicator
+    ## MariaDB replication user password
+    ## ref: https://github.com/bitnami/bitnami-docker-mariadb#setting-up-a-replication-cluster
+    ##
+    password: ""
+    ## Option to force users to specify a password. That is required for 'helm upgrade' to work properly.
+    ## If it is not force, a random password will be generated.
+    ##
+    forcePassword: false
+    ## Mount replication user password as a file instead of using an environment variable
+    ##
+    injectSecretsAsVolume: false
+
+  ## initdb scripts
+  ## Specify dictionary of scripts to be run at first boot
+  ## Alternatively, you can put your scripts under the files/docker-entrypoint-initdb.d directory
+  ##
+  # initdbScripts:
+  #   my_init_script.sh: |
+  #      #!/bin/sh
+  #      echo "Do something."
+  #
+  ## ConfigMap with scripts to be run at first boot
+  ## Note: This will override initdbScripts
+  # initdbScriptsConfigMap:
+
+  master:
+    ## Mariadb Master additional pod annotations
+    ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+    # annotations:
+    #   key: value
+    #   another-key: another-value
+
+    ## MariaDB additional command line flags
+    ## Can be used to specify command line flags, for example:
+    ##
+    ## extraFlags: "--max-connect-errors=1000 --max_connections=155"
+
+    ## Affinity for pod assignment
+    ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+    ##
+    affinity: {}
+
+    ## Kept for backwards compatibility. You can now disable it by removing it.
+    ## if you wish to set it through master.affinity.podAntiAffinity instead.
+    ##
+    antiAffinity: soft
+
+    ## Node labels for pod assignment
+    ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+    ##
+    nodeSelector: {}
+
+    ## Tolerations for pod assignment
+    ## Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+    ##
+    tolerations: []
+
+    ## updateStrategy for MariaDB Master StatefulSet
+    ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+    updateStrategy:
+      type: RollingUpdate
+
+    ## Enable persistence using Persistent Volume Claims
+    ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+    ##
+    persistence:
+      ## If true, use a Persistent Volume Claim, If false, use emptyDir
+      ##
+      enabled: true
+      # Enable persistence using an existing PVC
+      # existingClaim:
+      # Subdirectory of the volume to mount
+      # subPath:
+      mountPath: /bitnami/mariadb
+      ## Persistent Volume Storage Class
+      ## If defined, storageClassName: <storageClass>
+      ## If set to "-", storageClassName: "", which disables dynamic provisioning
+      ## If undefined (the default) or set to null, no storageClassName spec is
+      ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+      ##   GKE, AWS & OpenStack)
+      ##
+      # storageClass: "-"
+      ## Persistent Volume Claim annotations
+      ##
+      annotations: {}
+      ## Persistent Volume Access Mode
+      ##
+      accessModes:
+      - ReadWriteOnce
+      ## Persistent Volume size
+      ##
+      size: 8Gi
+
+    extraInitContainers: |
+    # - name: do-something
+    #   image: busybox
+    #   command: ['do', 'something']
+
+    ## An array to add extra environment variables
+    ## For example:
+    ## extraEnvVars:
+    ##  - name: TZ
+    ##    value: "Europe/Paris"
+    ##
+    # extraEnvVars:
+
+    ## Configure MySQL with a custom my.cnf file
+    ## ref: https://mysql.com/kb/en/mysql/configuring-mysql-with-mycnf/#example-of-configuration-file
+    ##
+    config: |-
+      [mysqld]
+      skip-name-resolve
+      explicit_defaults_for_timestamp
+      basedir=/opt/bitnami/mariadb
+      plugin_dir=/opt/bitnami/mariadb/plugin
+      port=3306
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      tmpdir=/opt/bitnami/mariadb/tmp
+      max_allowed_packet=16M
+      bind-address=0.0.0.0
+      pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
+      log-error=/opt/bitnami/mariadb/logs/mysqld.log
+      character-set-server=UTF8
+      collation-server=utf8_general_ci
+
+      [client]
+      port=3306
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      default-character-set=UTF8
+      plugin_dir=/opt/bitnami/mariadb/plugin
+
+      [manager]
+      port=3306
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
+
+    ## Configure master resource requests and limits
+    ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    ##
+    resources: {}
+    livenessProbe:
+      enabled: true
+      ##
+      ## Initializing the database could take some time
+      initialDelaySeconds: 120
+      ##
+      ## Default Kubernetes values
+      periodSeconds: 10
+      timeoutSeconds: 1
+      successThreshold: 1
+      failureThreshold: 3
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 30
+      ##
+      ## Default Kubernetes values
+      periodSeconds: 10
+      timeoutSeconds: 1
+      successThreshold: 1
+      failureThreshold: 3
+
+    podDisruptionBudget:
+      enabled: false
+      minAvailable: 1
+      # maxUnavailable: 1
+
+    ## Allow customization of the service resource
+    ##
+    service:
+      ## Add custom annotations to the service
+      ##
+      annotations: {}
+        # external-dns.alpha.kubernetes.io/hostname: db.example.com
+
+  slave:
+    replicas: 1
+
+    ## Mariadb Slave additional pod annotations
+    ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+    # annotations:
+    #   key: value
+    #   another-key: another-value
+
+    ## MariaDB additional command line flags
+    ## Can be used to specify command line flags, for example:
+    ##
+    ## extraFlags: "--max-connect-errors=1000 --max_connections=155"
+
+    ## Affinity for pod assignment
+    ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+    ##
+    affinity: {}
+
+    ## Kept for backwards compatibility. You can now disable it by removing it.
+    ## if you wish to set it through slave.affinity.podAntiAffinity instead.
+    ##
+    antiAffinity: soft
+
+    ## Node labels for pod assignment
+    ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+    ##
+    nodeSelector: {}
+
+    ## Tolerations for pod assignment
+    ## Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+    ##
+    tolerations: []
+
+    ## updateStrategy for MariaDB Slave StatefulSet
+    ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+    updateStrategy:
+      type: RollingUpdate
+
+    persistence:
+      ## If true, use a Persistent Volume Claim, If false, use emptyDir
+      ##
+      enabled: true
+      # storageClass: "-"
+      annotations:
+      accessModes:
+      - ReadWriteOnce
+      ## Persistent Volume size
+      ##
+      size: 8Gi
+
+    extraInitContainers: |
+    # - name: do-something
+    #   image: busybox
+    #   command: ['do', 'something']
+
+    ## An array to add extra environment variables
+    ## For example:
+    ## extraEnvVars:
+    ##  - name: TZ
+    ##    value: "Europe/Paris"
+    ##
+    # extraEnvVars:
+
+    ## Configure MySQL slave with a custom my.cnf file
+    ## ref: https://mysql.com/kb/en/mysql/configuring-mysql-with-mycnf/#example-of-configuration-file
+    ##
+    config: |-
+      [mysqld]
+      skip-name-resolve
+      explicit_defaults_for_timestamp
+      basedir=/opt/bitnami/mariadb
+      port=3306
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      tmpdir=/opt/bitnami/mariadb/tmp
+      max_allowed_packet=16M
+      bind-address=0.0.0.0
+      pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
+      log-error=/opt/bitnami/mariadb/logs/mysqld.log
+      character-set-server=UTF8
+      collation-server=utf8_general_ci
+
+      [client]
+      port=3306
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      default-character-set=UTF8
+
+      [manager]
+      port=3306
+      socket=/opt/bitnami/mariadb/tmp/mysql.sock
+      pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
+
+    ##
+    ## Configure slave resource requests and limits
+    ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    ##
+    resources: {}
+    livenessProbe:
+      enabled: true
+      ##
+      ## Initializing the database could take some time
+      initialDelaySeconds: 120
+      ##
+      ## Default Kubernetes values
+      periodSeconds: 10
+      timeoutSeconds: 1
+      successThreshold: 1
+      failureThreshold: 3
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 45
+      ##
+      ## Default Kubernetes values
+      periodSeconds: 10
+      timeoutSeconds: 1
+      successThreshold: 1
+      failureThreshold: 3
+
+    podDisruptionBudget:
+      enabled: false
+      minAvailable: 1
+      # maxUnavailable: 1
+
+    ## Allow customization of the service resource
+    ##
+    service:
+      ## Add custom annotations to the service
+      ##
+      annotations: {}
+        # external-dns.alpha.kubernetes.io/hostname: rodb.example.com
+
+  metrics:
+    enabled: false
+    image:
+      registry: docker.io
+      repository: bitnami/mysqld-exporter
+      tag: 0.12.1-debian-10-r4
+      pullPolicy: IfNotPresent
+      ## Optionally specify an array of imagePullSecrets.
+      ## Secrets must be manually created in the namespace.
+      ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+      ##
+      # pullSecrets:
+      #   - myRegistryKeySecretName
+    resources: {}
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9104"
+
+    ## Extra args to be passed to mysqld_exporter
+    ## ref: https://github.com/prometheus/mysqld_exporter/
+    ##
+    extraArgs:
+      master: []
+      slave: []
+        # - --collect.auto_increment.columns
+        # - --collect.binlog_size
+        # - --collect.engine_innodb_status
+        # - --collect.engine_tokudb_status
+        # - --collect.global_status
+        # - --collect.global_variables
+        # - --collect.info_schema.clientstats
+        # - --collect.info_schema.innodb_metrics
+        # - --collect.info_schema.innodb_tablespaces
+        # - --collect.info_schema.innodb_cmp
+        # - --collect.info_schema.innodb_cmpmem
+        # - --collect.info_schema.processlist
+        # - --collect.info_schema.processlist.min_time
+        # - --collect.info_schema.query_response_time
+        # - --collect.info_schema.tables
+        # - --collect.info_schema.tables.databases
+        # - --collect.info_schema.tablestats
+        # - --collect.info_schema.userstats
+        # - --collect.perf_schema.eventsstatements
+        # - --collect.perf_schema.eventsstatements.digest_text_limit
+        # - --collect.perf_schema.eventsstatements.limit
+        # - --collect.perf_schema.eventsstatements.timelimit
+        # - --collect.perf_schema.eventswaits
+        # - --collect.perf_schema.file_events
+        # - --collect.perf_schema.file_instances
+        # - --collect.perf_schema.indexiowaits
+        # - --collect.perf_schema.tableiowaits
+        # - --collect.perf_schema.tablelocks
+        # - --collect.perf_schema.replication_group_member_stats
+        # - --collect.slave_status
+        # - --collect.slave_hosts
+        # - --collect.heartbeat
+        # - --collect.heartbeat.database
+        # - --collect.heartbeat.table
+
+    livenessProbe:
+      enabled: true
+      ##
+      ## Initializing the database could take some time
+      initialDelaySeconds: 120
+      ##
+      ## Default Kubernetes values
+      periodSeconds: 10
+      timeoutSeconds: 1
+      successThreshold: 1
+      failureThreshold: 3
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 30
+      ##
+      ## Default Kubernetes values
+      periodSeconds: 10
+      timeoutSeconds: 1
+      successThreshold: 1
+      failureThreshold: 3
+
+    # Enable this if you're using https://github.com/coreos/prometheus-operator
+    serviceMonitor:
+      enabled: false
+      ## Specify a namespace if needed
+      # namespace: monitoring
+      # fallback to the prometheus default unless specified
+      # interval: 10s
+      # scrapeTimeout: 10s
+      ## Defaults to what's used if you follow CoreOS [Prometheus Install Instructions](https://github.com/helm/charts/tree/master/stable/prometheus-operator#tldr)
+      ## [Prometheus Selector Label](https://github.com/helm/charts/tree/master/stable/prometheus-operator#prometheus-operator-1)
+      ## [Kube Prometheus Selector Label](https://github.com/helm/charts/tree/master/stable/prometheus-operator#exporters)
+      selector:
+        prometheus: kube-prometheus
+
+  ## Bats Framework (= Bash Automated Testing System) is needed to test if MariaDB is accessible
+  ## See test-runner.yaml and tests.yaml for details.
+  ## To run the tests after the deployment, enter "helm test <release-name>".
+  tests:
+    enabled: true
+    # resources: {}
+    testFramework:
+      image:
+        registry: docker.io
+        repository: dduportal/bats
+        tag: 0.4.0
+      # resources: {}
+
+# Do not enabled on your production cluster
+redis:
+  enabled: false
+  ## Global Docker image parameters
+  ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+  ## Current available global Docker image parameters: imageRegistry and imagePullSecrets
+  ##
+  global:
+  #   imageRegistry: myRegistryName
+  #   imagePullSecrets:
+  #     - myRegistryKeySecretName
+  #   storageClass: myStorageClass
+    redis: {}
+
+  ## Bitnami Redis image version
+  ## ref: https://hub.docker.com/r/bitnami/redis/tags/
+  ##
+  image:
+    registry: docker.io
+    repository: bitnami/redis
+    ## Bitnami Redis image tag
+    ## ref: https://github.com/bitnami/bitnami-docker-redis#supported-tags-and-respective-dockerfile-links
+    ##
+    tag: 5.0.7-debian-10-r0
+    ## Specify a imagePullPolicy
+    ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+    ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+    ##
+    pullPolicy: IfNotPresent
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistryKeySecretName
+
+  ## String to partially override redis.fullname template (will maintain the release name)
+  ##
+  # nameOverride:
+
+  ## String to fully override redis.fullname template
+  ##
+  # fullnameOverride:
+
+  ## Cluster settings
+  cluster:
+    enabled: false
+    slaveCount: 2
+
+  ## Use redis sentinel in the redis pod. This will disable the master and slave services and
+  ## create one redis service with ports to the sentinel and the redis instances
+  sentinel:
+    enabled: false
+    ## Require password authentication on the sentinel itself
+    ## ref: https://redis.io/topics/sentinel
+    usePassword: true
+    ## Bitnami Redis Sentintel image version
+    ## ref: https://hub.docker.com/r/bitnami/redis-sentinel/tags/
+    ##
+    image:
+      registry: docker.io
+      repository: bitnami/redis-sentinel
+      ## Bitnami Redis image tag
+      ## ref: https://github.com/bitnami/bitnami-docker-redis-sentinel#supported-tags-and-respective-dockerfile-links
+      ##
+      tag: 5.0.7-debian-10-r0
+      ## Specify a imagePullPolicy
+      ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+      ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+      ##
+      pullPolicy: IfNotPresent
+      ## Optionally specify an array of imagePullSecrets.
+      ## Secrets must be manually created in the namespace.
+      ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+      ##
+      # pullSecrets:
+      #   - myRegistryKeySecretName
+    masterSet: mymaster
+    initialCheckTimeout: 5
+    quorum: 2
+    downAfterMilliseconds: 60000
+    failoverTimeout: 18000
+    parallelSyncs: 1
+    port: 26379
+    ## Additional Redis configuration for the sentinel nodes
+    ## ref: https://redis.io/topics/config
+    ##
+    configmap:
+    ## Enable or disable static sentinel IDs for each replicas
+    ## If disabled each sentinel will generate a random id at startup
+    ## If enabled, each replicas will have a constant ID on each start-up
+    ##
+    staticID: false
+    ## Configure extra options for Redis Sentinel liveness and readiness probes
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
+    ##
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 5
+      successThreshold: 1
+      failureThreshold: 5
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 1
+      successThreshold: 1
+      failureThreshold: 5
+    ## Redis Sentinel resource requests and limits
+    ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    # resources:
+    #   requests:
+    #     memory: 256Mi
+    #     cpu: 100m
+    ## Redis Sentinel Service properties
+    service:
+      ##  Redis Sentinel Service type
+      type: ClusterIP
+      sentinelPort: 26379
+      redisPort: 6379
+
+      ## Specify the nodePort value for the LoadBalancer and NodePort service types.
+      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+      ##
+      # sentinelNodePort:
+      # redisNodePort:
+
+      ## Provide any additional annotations which may be required. This can be used to
+      ## set the LoadBalancer service type to internal only.
+      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
+      ##
+      annotations: {}
+      labels: {}
+      loadBalancerIP:
+
+  ## Specifies the Kubernetes Cluster's Domain Name.
+  ##
+  clusterDomain: cluster.local
+
+  networkPolicy:
+    ## Specifies whether a NetworkPolicy should be created
+    ##
+    enabled: false
+
+    ## The Policy model to apply. When set to false, only pods with the correct
+    ## client label will have network access to the port Redis is listening
+    ## on. When true, Redis will accept connections from any source
+    ## (with the correct destination port).
+    ##
+    # allowExternal: true
+
+    ## Allow connections from other namespacess. Just set label for namespace and set label for pods (optional).
+    ##
+    ingressNSMatchLabels: {}
+    ingressNSPodMatchLabels: {}
+
+  serviceAccount:
+    ## Specifies whether a ServiceAccount should be created
+    ##
+    create: false
+    ## The name of the ServiceAccount to use.
+    ## If not set and create is true, a name is generated using the fullname template
+    name:
+
+  rbac:
+    ## Specifies whether RBAC resources should be created
+    ##
+    create: false
+
+    role:
+      ## Rules to create. It follows the role specification
+      # rules:
+      #  - apiGroups:
+      #    - extensions
+      #    resources:
+      #      - podsecuritypolicies
+      #    verbs:
+      #      - use
+      #    resourceNames:
+      #      - gce.unprivileged
+      rules: []
+
+  ## Redis pod Security Context
+  securityContext:
+    enabled: true
+    fsGroup: 1001
+    runAsUser: 1001
+    ## sysctl settings for master and slave pods
+    ##
+    ## Uncomment the setting below to increase the net.core.somaxconn value
+    ##
+    # sysctls:
+    # - name: net.core.somaxconn
+    #   value: "10000"
+
+  ## Use password authentication
+  usePassword: true
+  ## Redis password (both master and slave)
+  ## Defaults to a random 10-character alphanumeric string if not set and usePassword is true
+  ## ref: https://github.com/bitnami/bitnami-docker-redis#setting-the-server-password-on-first-run
+  ##
+  password: "jumpserver"
+  ## Use existing secret (ignores previous password)
+  # existingSecret:
+  ## Password key to be retrieved from Redis secret
+  ##
+  # existingSecretPasswordKey:
+
+  ## Mount secrets as files instead of environment variables
+  usePasswordFile: false
+
+  ## Persist data to a persistent volume (Redis Master)
+  persistence: {}
+    ## A manually managed Persistent Volume and Claim
+    ## Requires persistence.enabled: true
+    ## If defined, PVC must be created manually before volume will be bound
+    # existingClaim:
+
+  # Redis port
+  redisPort: 6379
+
+  ##
+  ## Redis Master parameters
+  ##
+  master:
+    ## Redis command arguments
+    ##
+    ## Can be used to specify command line arguments, for example:
+    ##
+    command: "/run.sh"
+    ## Additional Redis configuration for the master nodes
+    ## ref: https://redis.io/topics/config
+    ##
+    configmap:
+    ## Redis additional command line flags
+    ##
+    ## Can be used to specify command line flags, for example:
+    ##
+    ## extraFlags:
+    ##  - "--maxmemory-policy volatile-ttl"
+    ##  - "--repl-backlog-size 1024mb"
+    extraFlags: []
+    ## Comma-separated list of Redis commands to disable
+    ##
+    ## Can be used to disable Redis commands for security reasons.
+    ## Commands will be completely disabled by renaming each to an empty string.
+    ## ref: https://redis.io/topics/security#disabling-of-specific-commands
+    ##
+    disableCommands:
+    - FLUSHDB
+    - FLUSHALL
+
+    ## Redis Master additional pod labels and annotations
+    ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+    podLabels: {}
+    podAnnotations: {}
+
+    ## Redis Master resource requests and limits
+    ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    resources: {}
+      # requests:
+      #   memory: 256Mi
+      #   cpu: 100m
+    ## Use an alternate scheduler, e.g. "stork".
+    ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+    ##
+    # schedulerName:
+
+    ## Configure extra options for Redis Master liveness and readiness probes
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
+    ##
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 5
+      successThreshold: 1
+      failureThreshold: 5
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 1
+      successThreshold: 1
+      failureThreshold: 5
+
+    ## Redis Master Node selectors and tolerations for pod assignment
+    ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+    ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#taints-and-tolerations-beta-feature
+    ##
+    # nodeSelector: {"beta.kubernetes.io/arch": "amd64"}
+    # tolerations: []
+    ## Redis Master pod/node affinity/anti-affinity
+    ##
+    affinity: {}
+
+    ## Redis Master Service properties
+    service:
+      ##  Redis Master Service type
+      type: ClusterIP
+      port: 6379
+
+      ## Specify the nodePort value for the LoadBalancer and NodePort service types.
+      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+      ##
+      # nodePort:
+
+      ## Provide any additional annotations which may be required. This can be used to
+      ## set the LoadBalancer service type to internal only.
+      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
+      ##
+      annotations: {}
+      labels: {}
+      loadBalancerIP:
+      # loadBalancerSourceRanges: ["10.0.0.0/8"]
+
+    ## Enable persistence using Persistent Volume Claims
+    ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+    ##
+    persistence:
+      enabled: true
+      ## The path the volume will be mounted at, useful when using different
+      ## Redis images.
+      path: /data
+      ## The subdirectory of the volume to mount to, useful in dev environments
+      ## and one PV for multiple services.
+      subPath: ""
+      ## redis data Persistent Volume Storage Class
+      ## If defined, storageClassName: <storageClass>
+      ## If set to "-", storageClassName: "", which disables dynamic provisioning
+      ## If undefined (the default) or set to null, no storageClassName spec is
+      ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+      ##   GKE, AWS & OpenStack)
+      ##
+      # storageClass: "-"
+      accessModes:
+      - ReadWriteOnce
+      size: 8Gi
+      ## Persistent Volume selectors
+      ## https://kubernetes.io/docs/concepts/storage/persistent-volumes/#selector
+      matchLabels: {}
+      matchExpressions: {}
+
+    ## Update strategy, can be set to RollingUpdate or onDelete by default.
+    ## https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/#updating-statefulsets
+    statefulset:
+      updateStrategy: RollingUpdate
+      ## Partition update strategy
+      ## https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#partitions
+      # rollingUpdatePartition:
+
+    ## Redis Master pod priorityClassName
+    # priorityClassName: {}
+
+  ##
+  ## Redis Slave properties
+  ## Note: service.type is a mandatory parameter
+  ## The rest of the parameters are either optional or, if undefined, will inherit those declared in Redis Master
+  ##
+  slave:
+    ## Slave Service properties
+    service:
+      ## Redis Slave Service type
+      type: ClusterIP
+      ## Redis port
+      port: 6379
+      ## Specify the nodePort value for the LoadBalancer and NodePort service types.
+      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+      ##
+      # nodePort:
+
+      ## Provide any additional annotations which may be required. This can be used to
+      ## set the LoadBalancer service type to internal only.
+      ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
+      ##
+      annotations: {}
+      labels: {}
+      loadBalancerIP:
+      # loadBalancerSourceRanges: ["10.0.0.0/8"]
+
+    ## Redis slave port
+    port: 6379
+    ## Can be used to specify command line arguments, for example:
+    ##
+    command: "/run.sh"
+    ## Additional Redis configuration for the slave nodes
+    ## ref: https://redis.io/topics/config
+    ##
+    configmap:
+    ## Redis extra flags
+    extraFlags: []
+    ## List of Redis commands to disable
+    disableCommands:
+    - FLUSHDB
+    - FLUSHALL
+
+    ## Redis Slave pod/node affinity/anti-affinity
+    ##
+    affinity: {}
+
+    ## Configure extra options for Redis Slave liveness and readiness probes
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
+    ##
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      successThreshold: 1
+      failureThreshold: 5
+    readinessProbe:
+      enabled: true
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 10
+      successThreshold: 1
+      failureThreshold: 5
+
+    ## Redis slave Resource
+    resources: {}
+      # requests:
+      #   memory: 256Mi
+      #   cpu: 100m
+
+    ## Redis slave selectors and tolerations for pod assignment
+    # nodeSelector: {"beta.kubernetes.io/arch": "amd64"}
+    # tolerations: []
+
+    ## Use an alternate scheduler, e.g. "stork".
+    ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+    ##
+    # schedulerName:
+
+    ## Redis slave pod Annotation and Labels
+    podLabels: {}
+    podAnnotations: {}
+
+    ## Redis slave pod priorityClassName
+    # priorityClassName: {}
+
+    ## Enable persistence using Persistent Volume Claims
+    ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+    ##
+    persistence:
+      enabled: true
+      ## The path the volume will be mounted at, useful when using different
+      ## Redis images.
+      path: /data
+      ## The subdirectory of the volume to mount to, useful in dev environments
+      ## and one PV for multiple services.
+      subPath: ""
+      ## redis data Persistent Volume Storage Class
+      ## If defined, storageClassName: <storageClass>
+      ## If set to "-", storageClassName: "", which disables dynamic provisioning
+      ## If undefined (the default) or set to null, no storageClassName spec is
+      ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+      ##   GKE, AWS & OpenStack)
+      ##
+      # storageClass: "-"
+      accessModes:
+      - ReadWriteOnce
+      size: 8Gi
+      ## Persistent Volume selectors
+      ## https://kubernetes.io/docs/concepts/storage/persistent-volumes/#selector
+      matchLabels: {}
+      matchExpressions: {}
+
+    ## Update strategy, can be set to RollingUpdate or onDelete by default.
+    ## https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/#updating-statefulsets
+    statefulset:
+      updateStrategy: RollingUpdate
+      ## Partition update strategy
+      ## https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#partitions
+      # rollingUpdatePartition:
+
+  ## Prometheus Exporter / Metrics
+  ##
+  metrics:
+    enabled: false
+
+    image:
+      registry: docker.io
+      repository: bitnami/redis-exporter
+      tag: 1.3.5-debian-10-r0
+      pullPolicy: IfNotPresent
+      ## Optionally specify an array of imagePullSecrets.
+      ## Secrets must be manually created in the namespace.
+      ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+      ##
+      # pullSecrets:
+      #   - myRegistryKeySecretName
+
+    ## Metrics exporter resource requests and limits
+    ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    ##
+    # resources: {}
+
+    ## Extra arguments for Metrics exporter, for example:
+    ## extraArgs:
+    ##   check-keys: myKey,myOtherKey
+    # extraArgs: {}
+
+    ## Metrics exporter pod Annotation and Labels
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9121"
+    # podLabels: {}
+
+    # Enable this if you're using https://github.com/coreos/prometheus-operator
+    serviceMonitor:
+      enabled: false
+      ## Specify a namespace if needed
+      # namespace: monitoring
+      # fallback to the prometheus default unless specified
+      # interval: 10s
+      ## Defaults to what's used if you follow CoreOS [Prometheus Install Instructions](https://github.com/helm/charts/tree/master/stable/prometheus-operator#tldr)
+      ## [Prometheus Selector Label](https://github.com/helm/charts/tree/master/stable/prometheus-operator#prometheus-operator-1)
+      ## [Kube Prometheus Selector Label](https://github.com/helm/charts/tree/master/stable/prometheus-operator#exporters)
+      selector:
+        prometheus: kube-prometheus
+
+    ## Custom PrometheusRule to be defined
+    ## The value is evaluated as a template, so, for example, the value can depend on .Release or .Chart
+    ## ref: https://github.com/coreos/prometheus-operator#customresourcedefinitions
+    prometheusRule:
+      enabled: false
+      additionalLabels: {}
+      namespace: ""
+      rules: []
+        ## These are just examples rules, please adapt them to your needs.
+        ## Make sure to constraint the rules to the current postgresql service.
+        #  - alert: RedisDown
+        #    expr: redis_up{service="{{ template "redis.fullname" . }}-metrics"} == 0
+        #    for: 2m
+        #    labels:
+        #      severity: error
+        #    annotations:
+        #      summary: Redis instance {{ "{{ $instance }}" }} down
+        #      description: Redis instance {{ "{{ $instance }}" }} is down.
+        #  - alert: RedisMemoryHigh
+        #    expr: >
+        #       redis_memory_used_bytes{service="{{ template "redis.fullname" . }}-metrics"} * 100
+        #       /
+        #       redis_memory_max_bytes{service="{{ template "redis.fullname" . }}-metrics"}
+        #       > 90 =< 100
+        #    for: 2m
+        #    labels:
+        #      severity: error
+        #    annotations:
+        #      summary: Redis instance {{ "{{ $instance }}" }} is using too much memory
+        #      description: Redis instance {{ "{{ $instance }}" }} is using {{ "{{ $value }}" }}% of its available memory.
+        #  - alert: RedisKeyEviction
+        #    expr: increase(redis_evicted_keys_total{service="{{ template "redis.fullname" . }}-metrics"}[5m]) > 0
+        #    for: 1s
+        #    labels:
+        #      severity: error
+        #    annotations:
+        #      summary: Redis instance {{ "{{ $instance }}" }} has evicted keys
+        #      description: Redis instance {{ "{{ $instance }}" }} has evicted {{ "{{ $value }}" }} keys in the last 5 minutes.
+
+
+    ## Metrics exporter pod priorityClassName
+    # priorityClassName: {}
+    service:
+      type: ClusterIP
+      ## Use serviceLoadBalancerIP to request a specific static IP,
+      ## otherwise leave blank
+      # loadBalancerIP:
+      annotations: {}
+      labels: {}
+
+  ##
+  ## Init containers parameters:
+  ## volumePermissions: Change the owner of the persist volume mountpoint to RunAsUser:fsGroup
+  ##
+  volumePermissions:
+    enabled: false
+    image:
+      registry: docker.io
+      repository: bitnami/minideb
+      tag: buster
+      pullPolicy: Always
+      ## Optionally specify an array of imagePullSecrets.
+      ## Secrets must be manually created in the namespace.
+      ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+      ##
+      # pullSecrets:
+      #   - myRegistryKeySecretName
+    resources: {}
+    # resources:
+    #   requests:
+    #     memory: 128Mi
+    #     cpu: 100m
+
+  ## Redis config file
+  ## ref: https://redis.io/topics/config
+  ##
+  configmap: |-
+    # Enable AOF https://redis.io/topics/persistence#append-only-file
+    appendonly yes
+    # Disable RDB persistence, AOF persistence already enabled.
+    save ""
+
+  ## Sysctl InitContainer
+  ## used to perform sysctl operation to modify Kernel settings (needed sometimes to avoid warnings)
+  sysctlImage:
+    enabled: false
+    command: []
+    registry: docker.io
+    repository: bitnami/minideb
+    tag: buster
+    pullPolicy: Always
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistryKeySecretName
+    mountHostSys: false
+    resources: {}
+    # resources:
+    #   requests:
+    #     memory: 128Mi
+    #     cpu: 100m
+
+  ## PodSecurityPolicy configuration
+  ## ref: https://kubernetes.io/docs/concepts/policy/pod-security-policy/
+  ##
+  podSecurityPolicy:
+    ## Specifies whether a PodSecurityPolicy should be created
+    ##
+    create: false
